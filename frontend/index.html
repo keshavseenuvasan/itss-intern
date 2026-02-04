@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JAR File Analyzer</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-content">
+        <div class="header-title">
+          <h1>📦 JAR File Analyzer</h1>
+          <p>Analyze JAR and ZIP files - View all contents and file details</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-content">
+      <!-- Input Section -->
+      <section class="input-section">
+        <div class="card">
+          <h2>Select JAR/ZIP File</h2>
+          <div class="form-group">
+            <label for="jarFile">Choose JAR or ZIP File</label>
+            <input
+              type="file"
+              id="jarFile"
+              accept=".jar,.zip"
+              placeholder="Select a JAR or ZIP file"
+            />
+            <div class="file-help-text">Max size: 500MB | Supports .jar and .zip files</div>
+          </div>
+          <button id="analyzeBtn" class="btn btn-primary">Analyze JAR File</button>
+          <div id="analysisError" class="error-message" style="display: none;"></div>
+          <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+            <div class="spinner"></div>
+            <p>Analyzing JAR file...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Results Section -->
+      <section id="resultsSection" class="results-section" style="display: none;">
+        <!-- JAR File Info -->
+        <div class="card">
+          <h2>📦 JAR File Information</h2>
+          <div class="jar-file-info">
+            <p><strong>File Name:</strong> <span id="jarFileName"></span></p>
+            <p><strong>File Size:</strong> <span id="jarFileSize"></span></p>
+          </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+          <div class="card-summary">
+            <div class="summary-icon">📄</div>
+            <div class="summary-info">
+              <h3>Total Files</h3>
+              <p id="totalFiles" class="summary-value">0</p>
+            </div>
+          </div>
+          <div class="card-summary">
+            <div class="summary-icon">📂</div>
+            <div class="summary-info">
+              <h3>Total Folders</h3>
+              <p id="totalFolders" class="summary-value">0</p>
+            </div>
+          </div>
+          <div class="card-summary">
+            <div class="summary-icon">💾</div>
+            <div class="summary-info">
+              <h3>Total Size</h3>
+              <p id="totalSize" class="summary-value">0</p>
+            </div>
+          </div>
+          <div class="card-summary">
+            <div class="summary-icon">🏷️</div>
+            <div class="summary-info">
+              <h3>File Types</h3>
+              <p id="totalTypes" class="summary-value">0</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- File Type Summary -->
+        <div class="card">
+          <h2>File Type Count Summary</h2>
+          <div id="fileTypeSummary" class="file-type-grid"></div>
+        </div>
+
+        <!-- Hierarchical Tree View -->
+        <div class="card">
+          <h2>📂 Complete Folder Structure (Hierarchical)</h2>
+          <div id="treeView" class="tree-view"></div>
+        </div>
+
+        <!-- Files List -->
+        <div class="card">
+          <h2>📄 Files in Root Location</h2>
+          <div id="filesList" class="files-table"></div>
+        </div>
+
+        <!-- All Contents -->
+        <div class="card">
+          <h2>📁 Complete Contents by Folder</h2>
+          <div id="allContents" class="all-contents"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/js/jar-analyzer.js"></script>
+</body>
+</html>

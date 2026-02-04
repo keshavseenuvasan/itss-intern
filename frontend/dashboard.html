@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Folder Analysis Dashboard</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-content">
+        <div class="header-title">
+          <h1>📁 Folder Analysis Dashboard</h1>
+          <p id="userInfo" class="user-info"></p>
+        </div>
+        <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-content">
+      <!-- Input Section -->
+      <section class="input-section">
+        <div class="tabs-header">
+          <button id="tabFolder" class="tab-btn tab-active" data-tab="folder">📁 Analyze Folder</button>
+          <button id="tabJar" class="tab-btn" data-tab="jar">📦 Analyze JAR/ZIP</button>
+        </div>
+
+        <!-- Folder Analysis Tab -->
+        <div id="folderTab" class="tab-content active">
+          <div class="card">
+            <h2>Analyze Folder</h2>
+            <div class="form-group">
+              <label for="folderPath">Folder Path</label>
+              <input
+                type="text"
+                id="folderPath"
+                placeholder="e.g., C:\Users\YourName\Documents\MyFolder"
+                value=""
+              />
+              <div class="path-suggestions" id="pathSuggestions"></div>
+            </div>
+            <button id="analyzeBtn" class="btn btn-primary">Analyze</button>
+            <div id="analysisError" class="error-message" style="display: none;"></div>
+            <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+              <div class="spinner"></div>
+              <p>Analyzing folder...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- JAR Analysis Tab -->
+        <div id="jarTab" class="tab-content">
+          <div class="card">
+            <h2>Analyze JAR/ZIP File</h2>
+            <div class="form-group">
+              <label for="jarFile">Select JAR/ZIP File</label>
+              <input
+                type="file"
+                id="jarFile"
+                accept=".jar,.zip"
+                placeholder="Choose a JAR or ZIP file"
+              />
+              <div class="file-help-text">Max size: 500MB</div>
+            </div>
+            <button id="analyzeJarBtn" class="btn btn-primary">Analyze</button>
+            <div id="jarError" class="error-message" style="display: none;"></div>
+            <div id="jarLoadingSpinner" class="loading-spinner" style="display: none;">
+              <div class="spinner"></div>
+              <p>Analyzing JAR file...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Results Section -->
+      <section id="resultsSection" class="results-section" style="display: none;">
+        <!-- JAR Results Header -->
+        <div id="jarResultsHeader" style="display: none;">
+          <div class="card">
+            <h2>📦 JAR File Analysis Results</h2>
+            <div class="jar-file-info">
+              <p><strong>File Name:</strong> <span id="jarFileName"></span></p>
+              <p><strong>File Size:</strong> <span id="jarFileSize"></span></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+          <div class="card-summary">
+            <div class="summary-icon">📄</div>
+            <div class="summary-info">
+              <h3>Total Files</h3>
+              <p id="totalFiles" class="summary-value">0</p>
+            </div>
+          </div>
+          <div class="card-summary">
+            <div class="summary-icon">📂</div>
+            <div class="summary-info">
+              <h3>Total Folders</h3>
+              <p id="totalFolders" class="summary-value">0</p>
+            </div>
+          </div>
+          <div class="card-summary">
+            <div class="summary-icon">💾</div>
+            <div class="summary-info">
+              <h3>Total Size</h3>
+              <p id="totalSize" class="summary-value">0</p>
+            </div>
+          </div>
+          <div class="card-summary">
+            <div class="summary-icon">🏷️</div>
+            <div class="summary-info">
+              <h3>File Types</h3>
+              <p id="totalTypes" class="summary-value">0</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- File Type Summary -->
+        <div class="card">
+          <h2>File Type Summary</h2>
+          <div id="fileTypeSummary" class="file-type-grid"></div>
+        </div>
+
+        <!-- Global Statistics -->
+        <div class="card">
+          <h2>📊 Global Statistics</h2>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <span class="stat-label">Max Folder Depth:</span>
+              <span class="stat-value" id="maxDepth">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Total Directories:</span>
+              <span class="stat-value" id="globalTotalFolders">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Total Files:</span>
+              <span class="stat-value" id="globalTotalFiles">0</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Total Size:</span>
+              <span class="stat-value" id="globalTotalSize">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tree View -->
+        <div class="card">
+          <h2>📂 Folder Structure (Hierarchical Tree)</h2>
+          <div id="treeView" class="tree-view"></div>
+        </div>
+
+        <!-- Files List -->
+        <div class="card">
+          <h2>Files in Main Location</h2>
+          <div id="filesList" class="files-table"></div>
+        </div>
+
+        <!-- Subfolders -->
+        <div class="card">
+          <h2>Subfolders/Packages Analysis</h2>
+          <div id="subfoldersList" class="subfolders-list"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>
