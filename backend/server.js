@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 
 const jarRoutes = require('./routes/jar');
+const folderRoutes = require('./routes/folders');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -19,6 +20,8 @@ app.use(express.static(path.join(__dirname, '../frontend')));
 // Routes
 // JAR analysis does not require authentication
 app.use('/api/jar', jarRoutes);
+// Folder analysis routes
+app.use('/api/folders', folderRoutes);
 
 // Default route - serve login page
 app.get('/', (req, res) => {
