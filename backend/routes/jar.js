@@ -147,3 +147,84 @@ function formatFileSize(bytes) {
 }
 
 module.exports = router;
+
+/**
+ * POST /api/jar/analyze-multiple
+ * Upload multiple JAR/ZIP files (e.g., from a folder upload) and analyze each
+ */
+router.post('/analyze-multiple', upload.array('files', 200), (req, res) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ success: false, error: 'No files uploaded' });
+  }
+
+  // Set a generous timeout for processing multiple files
+  const timeoutId = setTimeout(() => {
+    if (!res.headersSent) {
+      // cleanup uploaded files
+      (req.files || []).forEach(f => {
+        try { fs.unlinkSync(f.path); } catch (e) { }
+      });
+      res.status(408).json({ success: false, error: 'Processing timed out' });
+    }
+  }, 10 * 60 * 1000); // 10 minutes
+
+  try {
+    const results = [];
+    const aggregatedFileTypes = {};
+    let totalFiles = 0;
+    let totalFolders = 0;
+    let totalSize = 0;
+
+    for (const file of req.files) {
+      try {
+        const analysis = analyzeJarFile(file.path);
+        const totals = calculateTotalStats(analysis);
+
+        results.push({
+          fileName: analysis.fileName,
+          filePath: analysis.filePath,
+          fileSize: analysis.fileSize,
+          fileSizeFormatted: analysis.fileSizeFormatted,
+          totalFiles: totals.totalFiles,
+          totalFolders: totals.totalFolders,
+          fileTypeSummary: totals.fileTypeSummary
+        });
+
+        totalFiles += totals.totalFiles;
+        totalFolders += totals.totalFolders;
+        totalSize += analysis.fileSize || 0;
+
+        Object.entries(totals.fileTypeSummary || {}).forEach(([t, c]) => {
+          aggregatedFileTypes[t] = (aggregatedFileTypes[t] || 0) + c;
+        });
+      } catch (err) {
+        results.push({ fileName: file.originalname, error: err.message });
+      } finally {
+        // cleanup uploaded file
+        try { fs.unlinkSync(file.path); } catch (e) { }
+      }
+    }
+
+    clearTimeout(timeoutId);
+
+    return res.json({
+      success: true,
+      data: {
+        files: results,
+        summary: {
+          uploadedCount: req.files.length,
+          totalFiles,
+          totalFolders,
+          totalSize,
+          totalSizeFormatted: formatFileSize(totalSize),
+          aggregatedFileTypeSummary: aggregatedFileTypes
+        }
+      }
+    });
+  } catch (err) {
+    clearTimeout(timeoutId);
+    // cleanup uploaded files on error
+    (req.files || []).forEach(f => { try { fs.unlinkSync(f.path); } catch (e) { } });
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
