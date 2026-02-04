@@ -546,6 +546,115 @@ document.getElementById('analyzeJarBtn').addEventListener('click', async () => {
 });
 
 /**
+ * Upload a selected folder (via webkitdirectory) and analyze contained JAR/ZIP files
+ */
+document.getElementById('uploadJarFolderBtn').addEventListener('click', async () => {
+  const folderInput = document.getElementById('jarFolderInput');
+  const jarError = document.getElementById('jarError');
+  const jarLoadingSpinner = document.getElementById('jarLoadingSpinner');
+  const resultsSection = document.getElementById('resultsSection');
+
+  jarError.style.display = 'none';
+
+  if (!folderInput.files || folderInput.files.length === 0) {
+    jarError.textContent = 'Please select a folder containing JAR/ZIP files';
+    jarError.style.display = 'block';
+    return;
+  }
+
+  // Filter only .jar and .zip files
+  const files = Array.from(folderInput.files).filter(f => {
+    const name = f.name.toLowerCase();
+    return name.endsWith('.jar') || name.endsWith('.zip');
+  });
+
+  if (files.length === 0) {
+    jarError.textContent = 'No .jar or .zip files found in the selected folder';
+    jarError.style.display = 'block';
+    return;
+  }
+
+  // Prevent extremely large combined uploads in browser; allow user to proceed though
+  jarLoadingSpinner.style.display = 'block';
+  resultsSection.style.display = 'none';
+
+  try {
+    const formData = new FormData();
+    files.forEach((file) => formData.append('files', file, file.name));
+
+    const response = await fetch('/api/jar/analyze-multiple', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+
+    jarLoadingSpinner.style.display = 'none';
+
+    const data = await response.json();
+
+    if (data.success) {
+      displayMultipleJarResults(data.data);
+      resultsSection.style.display = 'block';
+      document.getElementById('jarResultsHeader').style.display = 'none';
+      folderInput.value = ''; // Clear selection
+    } else {
+      jarError.textContent = data.error || 'Analysis failed';
+      jarError.style.display = 'block';
+    }
+  } catch (err) {
+    jarLoadingSpinner.style.display = 'none';
+    jarError.textContent = 'An error occurred while uploading. Please try again.';
+    jarError.style.display = 'block';
+    console.error('Multi JAR upload error:', err);
+  }
+});
+
+/**
+ * Display results for multiple JAR files
+ */
+function displayMultipleJarResults(data) {
+  // data.files -> array of per-file results
+  // data.summary -> aggregated summary
+
+  // Populate summary cards
+  document.getElementById('totalFiles').textContent = data.summary.totalFiles || 0;
+  document.getElementById('totalFolders').textContent = data.summary.totalFolders || 0;
+  document.getElementById('totalSize').textContent = data.summary.totalSizeFormatted || data.summary.totalSize || '0 Bytes';
+  document.getElementById('totalTypes').textContent = Object.keys(data.summary.aggregatedFileTypeSummary || {}).length;
+
+  // Display aggregated file type summary
+  displayFileTypeSummary(data.summary.aggregatedFileTypeSummary || {});
+
+  // Show per-file breakdown in the subfolders list area (reuse that UI area)
+  const container = document.getElementById('subfoldersList');
+  container.innerHTML = '';
+
+  data.files.forEach(f => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    if (f.error) {
+      card.innerHTML = `<h4>❌ ${f.fileName || f.file}</h4><p class="error-text">${f.error}</p>`;
+    } else {
+      const typesHtml = Object.entries(f.fileTypeSummary || {}).map(([t,c]) => `<span class="file-type-badge">.${t} <strong>${c}</strong></span>`).join(' ');
+      card.innerHTML = `
+        <h4>📦 ${f.fileName}</h4>
+        <p>Files: ${f.totalFiles} • Folders: ${f.totalFolders} • Size: ${f.fileSizeFormatted || f.fileSize || 'N/A'}</p>
+        <div class="file-type-grid">${typesHtml}</div>
+      `;
+    }
+    container.appendChild(card);
+  });
+
+  // Update other global stats area
+  document.getElementById('maxDepth').textContent = 'N/A';
+  document.getElementById('globalTotalFolders').textContent = data.summary.totalFolders || 0;
+  document.getElementById('globalTotalFiles').textContent = data.summary.totalFiles || 0;
+  document.getElementById('globalTotalSize').textContent = data.summary.totalSizeFormatted || data.summary.totalSize || '0 Bytes';
+}
+
+/**
  * Display JAR analysis results
  */
 function displayJarResults(jarData) {
